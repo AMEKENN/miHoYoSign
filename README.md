@@ -23,52 +23,95 @@
 application.yml
 ```yml
 debug: true
+logging:
+  level:
+    org:
+      springframework:
+        boot:
+          autoconfigure:
+            logging: info
 server:
   # 签到服务器端口
   port: 4404
 
-#[sqlite]删除下面的注释
-spring:
-  datasource:
-    # 数据库驱动
-    driver-class-name: org.sqlite.JDBC
-    # 数据库地址
-    url: jdbc:sqlite:mihoyo_sign.sqlite
-  jpa:
-    database-platform: com.ame.mihoyosign.config.SQLiteDialect
-    hibernate:
-      ddl-auto: update
-    open-in-view: true
-
-##[mysql]删除下面的注释并修改参数
+##[sqlite]删除下面的注释
 #spring:
 #  datasource:
 #    # 数据库驱动
-#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    driver-class-name: org.sqlite.JDBC
 #    # 数据库地址
-#    url: jdbc:mysql://192.168.1.103:3306/mihoyo_sign?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
-#    # 数据库用户名
-#    username: root
-#    # 数据库密码
-#    password: "123456"
+#    url: jdbc:sqlite:mihoyo_sign.sqlite
 #  jpa:
+#    database-platform: org.sqlite.hibernate.dialect.SQLiteDialect
 #    hibernate:
 #      ddl-auto: update
 #    open-in-view: true
 
+#[mysql]删除下面的注释并修改参数
+spring:
+  datasource:
+    # 数据库驱动
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    # 数据库地址
+    url: jdbc:mysql://192.168.1.123:3306/mihoyo_sign_test?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
+    # 数据库用户名
+    username: root
+    # 数据库密码
+    password: "123456"
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL5InnoDBDialect
+    hibernate:
+      ddl-auto: update
+    open-in-view: true
+
 app-config:
   # 帮助的回复
   help: |
-    所有功能
+    命令:
+        绑定 [*cookie]
+        解绑
+        修改api延迟 [延迟(单位:秒 例:0~10)]
+        修改签到延迟 [延迟]
+        开启签到 [游戏名] [游戏角色UID]
+        关闭签到 [游戏名] [游戏角色UID]
+        签到 [游戏名] [游戏角色UID]
+        开启通知 [游戏名] [游戏角色UID]
+        关闭通知 [游戏名] [游戏角色UID]
+        所有角色
+        已开启角色
+    注意:
+        带*的为必填参数
+    例如:
+        开启签到 原神 100000000
+          开启指定角色的自动签到
+        开启签到 原神
+          开启指定游戏的所有角色
+        开启签到 100000000
+          开启指定UID的所有角色
+        开启签到
+          开启所有角色
 
   # OneBot Mirai地址
-  url: http://192.168.1.103:5500
+  url: http://192.168.1.123:4400
   # 管理员的QQ号
   admin-qq-id: 123456789
-  # 日志发送到哪个群
-  log-group-id: 987654321
-  # 签到计划执行时间
+  # 日志发送到哪个群 -1:不发送 -2:发送给管理员
+  log-group-id: -2
+  # 默认是否发签到结果通知
+  is-notice: false
+  # 默认发送miHoYoApi随机延迟范围(单位:秒)
+  api-delay: '[2,10]'
+  # 自定义api延迟必须所在范围
+  api-delay-max: '[0,120]'
+  # 默认自动签到随机延迟范围(单位:秒)
+  sign-delay: '[0,1200]'
+  # 自定义自动签到随机延迟必须所在范围
+  sign-delay-max: '[0,7200]'
+  # 签到计划执行时间(每天00:30:00)
   sign-cron: 0 30 0 * * ?
+  # 奖励列表更新频率(每月1日00:00:00,程序启动时会自动执行一次)
+  sign-reward-cron: 0 0 0 1 * ?
+
   # 命令
   #   收到以左列关键字开头的消息,执行对应右列功能
   #   左列不能重复,右列可以重复
@@ -77,6 +120,8 @@ app-config:
     '帮助' : '帮助',
     '绑定' : '绑定',
     '解绑' : '解绑',
+    '修改api延迟' : '修改api延迟',
+    '修改签到延迟' : '修改签到延迟',
     '开启签到' : '开启签到',
     '关闭签到' : '关闭签到',
     '签到' : '签到',
@@ -198,6 +243,8 @@ java -jar miHoYoSign.jar
     签到 [游戏名] [游戏角色UID]
     开启通知 [游戏名] [游戏角色UID]
     关闭通知 [游戏名] [游戏角色UID]
+    修改api延迟 [延迟]
+    修改签到延迟 [延迟]
     所有角色
     已开启角色
 
