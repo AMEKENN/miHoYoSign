@@ -77,12 +77,10 @@ public class MiHoYoService {
         List<Role> roles = rolesByCookie.getJSONObject("data").getJSONArray("list").toJavaList(Role.class);
         if (gameUid == null) {
             return roles;
-        } else if (gameBiz == null) {
+        } else {
             return roles.stream()
                     .filter(role -> role.getGameUid().equals(gameUid))
                     .collect(Collectors.toList());
-        } else {
-            return new ArrayList<>();
         }
     }
 
