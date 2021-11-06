@@ -123,16 +123,13 @@ public class MiHoYoService {
         }
     }
 
-    public Reward bh3Sign(Role role, User user) throws ParseException, MiHoYoApiException {
+    public Reward bh3Sign(Role role, User user) throws MiHoYoApiException {
         Utils.delay(user.getApiDelay());
         JSONObject sign = miHoYoRepository.bh3Sign(role, getBh3Headers(user));
         if (sign.getIntValue("retcode") == 0) {
             JSONObject data = sign.getJSONObject("data");
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-            Date beginDate = new Date();
-            Date endDate = format.parse(data.getString("now"));
-            int day = (int) (endDate.getTime() - beginDate.getTime()) / (24 * 60 * 60 * 1000);
-            return data.getJSONArray("list").getObject(day, Reward.class);
+            int cnt = data.getIntValue("sign_cnt");
+            return data.getJSONArray("list").getObject(cnt-1, Reward.class);
         } else {
             throw new MiHoYoApiException(sign.getString("message"));
         }
