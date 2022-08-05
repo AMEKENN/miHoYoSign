@@ -1,7 +1,6 @@
 package com.ame.mihoyosign.service;
 
 import com.ame.mihoyosign.dao.RoleRepository;
-import com.ame.mihoyosign.dao.UserRepository;
 import com.ame.mihoyosign.entity.Role;
 import com.ame.mihoyosign.entity.User;
 import com.ame.mihoyosign.exception.NotAdminException;
@@ -37,7 +36,7 @@ public class AdminService {
 
     public void updateRewards(long qqId) throws NotAdminException {
         checkAdmin(qqId);
-        miHoYoService.updateYsRewards();
+        miHoYoService.updateRewards();
     }
 
     public String sendNotice(long qqId, String notice, String toQQId) throws NotAdminException {

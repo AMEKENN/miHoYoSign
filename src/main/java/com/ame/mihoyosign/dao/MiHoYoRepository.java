@@ -35,6 +35,7 @@ public class MiHoYoRepository {
 
     /**
      * 通过 验证码 获取 LoginTicket
+     * @deprecated 已失效
      */
     @Deprecated
     public JSONObject loginByMobileCaptcha(String phone, String captcha) {
@@ -45,6 +46,7 @@ public class MiHoYoRepository {
 
     /**
      * 通过 LoginTicket 获取 token
+     * @deprecated 已失效
      */
     @Deprecated
     public JSONObject getMultiTokenByLoginTicket(String webLoginToken, String accountId) {
@@ -56,6 +58,7 @@ public class MiHoYoRepository {
 
     /**
      * 通过 LoginTicket 获取 cookie
+     * @deprecated 已失效
      */
     @Deprecated
     public JSONObject getCookieAccountInfoByLoginTicket(String webLoginToken) {
@@ -80,7 +83,7 @@ public class MiHoYoRepository {
     }
 
     /**
-     * 获取 签到奖励列表
+     * 获取原神签到奖励列表
      */
     public JSONObject getYsSignRewards() {
         String url = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/home?act_id=e202009291139501";
@@ -88,7 +91,7 @@ public class MiHoYoRepository {
     }
 
     /**
-     * 获取 累计签到天数
+     * 获取原神累计签到天数
      */
     public JSONObject getYsSignInfo(Role role, HttpHeaders headers) {
         String url = "https://api-takumi.mihoyo.com/event/bbs_sign_reward/info";
@@ -110,10 +113,31 @@ public class MiHoYoRepository {
         return restTemplate.postForObject(url, requestEntity, JSONObject.class);
     }
 
+    /**
+     * 获取崩坏3签到奖励列表
+     */
+    public JSONObject getBh3SignRewards() {
+        String url = "https://api-takumi.mihoyo.com/event/luna/home?act_id=e202207181446311";
+        return restTemplate.getForObject(url, JSONObject.class);
+    }
+
+    /**
+     * 获取崩坏3累计签到天数
+     */
+    public JSONObject getBh3SignInfo(Role role, HttpHeaders headers) {
+        String url = "https://api-takumi.mihoyo.com/event/luna/info";
+        String p = "act_id=e202207181446311" +
+                "&region=" + role.getRegion() +
+                "&uid=" + role.getGameUid();
+        HttpEntity<String> httpEntity = new HttpEntity<>(null, headers);
+        ResponseEntity<JSONObject> re = restTemplate.exchange(url + "?" + p, HttpMethod.GET, httpEntity, JSONObject.class);
+        return re.getBody();
+    }
+
     public JSONObject bh3Sign(Role role, HttpHeaders headers) {
-        String url = "https://api-takumi.mihoyo.com/common/eutheniav2/sign";
+        String url = "https://api-takumi.mihoyo.com/event/luna/sign";
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("act_id", "ea20211026151532");
+        jsonObject.put("act_id", "e202207181446311");
         jsonObject.put("region", role.getRegion());
         jsonObject.put("uid", role.getGameUid());
         HttpEntity<JSONObject> requestEntity = new HttpEntity<>(jsonObject, headers);

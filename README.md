@@ -89,12 +89,10 @@ app-config:
     '全部签到' : '全部签到'
   }"
 
-
-# 这些不需要改
-ys:
-  salt: h8w582wxwgqvahcdkpvdhbh2w9casgfl
+  # 这些不需要改,除非salt失效
+  salt: 9nQiU3AV0rJSIBWgdynfoGMGKaklfbM7
   headers: "{
-    'User_Agent': 'Mozilla/5.0 (Linux; Android 10; MIX 2 Build/QKQ1.190825.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.101 Mobile Safari/537.36 miHoYoBBS/2.3.0',
+    'User_Agent': 'Mozilla/5.0 (Linux; Android 10; MIX 2 Build/QKQ1.190825.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.101 Mobile Safari/537.36 miHoYoBBS/2.34.1',
     'Accept': 'application/json, text/plain, */*',
     'Content_Type': 'application/json;charset=UTF-8',
     'Connection': 'keep-alive',
@@ -109,24 +107,7 @@ ys:
     'Content-Length': '66',
     'x-rpc-client_type': '5',
     'Referer': 'https://webstatic.mihoyo.com/bbs/event/signin-ys/index.html?bbs_auth_required=true&act_id=e202009291139501&utm_source=bbs&utm_medium=mys&utm_campaign=icon',
-    'x-rpc-app_version': '2.3.0'
-  }"
-bh3:
-  headers: "{
-    'User_Agent': 'Mozilla/5.0 (Linux; Android 10; MIX 2 Build/QKQ1.190825.002; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/83.0.4103.101 Mobile Safari/537.36 miHoYoBBS/2.7.0',
-    'Accept': 'application/json, text/plain, */*',
-    'Content_Type': 'application/json;charset=UTF-8',
-    'Connection': 'keep-alive',
-    'Origin': 'https://webstatic.mihoyo.com',
-    'X_Requested_With': 'com.mihoyo.hyperion',
-    'Sec_Fetch_Site': 'same-site',
-    'Sec_Fetch_Mode': 'cors',
-    'Sec_Fetch_Dest': 'empty',
-    'Accept_Encoding': 'gzip,deflate',
-    'Accept_Language': 'zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7',
-
-    'Content-Length': '60',
-    'Referer': 'https://webstatic.mihoyo.com/bh3/event/euthenia/index.html?bbs_presentation_style=fullscreen&bbs_game_role_required=bh3_cn&bbs_auth_required=true&act_id=e202104072769&utm_source=bbs&utm_medium=mys&utm_campaign=icon'
+    'x-rpc-app_version': '2.34.1'
   }"
 ```
 
@@ -205,6 +186,7 @@ java -jar miHoYoSign.jar
     所有用户角色
     通知 [通知内容] [QQ号]
     全部签到
+    (QQ:[QQ号])命令  #这是以某个QQ号的身份发送命令
 
 例如:
     开启签到 原神 100000000

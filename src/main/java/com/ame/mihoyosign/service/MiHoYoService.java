@@ -19,8 +19,6 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,11 +26,9 @@ import java.util.stream.Collectors;
 @Service
 public class MiHoYoService {
 
-    @Value("#{${ys.headers}}")
-    private HttpHeaders ysHeaders;
-    @Value("#{${bh3.headers}}")
-    private HttpHeaders bh3Headers;
-    @Value("${ys.salt}")
+    @Value("#{${app-config.headers}}")
+    private HttpHeaders headers;
+    @Value("${app-config.salt}")
     private String salt;
 
     @Resource
@@ -51,22 +47,15 @@ public class MiHoYoService {
         return t + "," + r + "," + c;
     }
 
-    public HttpHeaders getYsHeaders(User user) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.addAll(ysHeaders);
-        headers.add("DS", getDS());
-        headers.add("x-rpc-device_id", user.getDeviceId());
-        headers.add(HttpHeaders.COOKIE, user.getCookie());
-        return headers;
+    public HttpHeaders getHeaders(User user) {
+        HttpHeaders h = new HttpHeaders();
+        h.addAll(headers);
+        h.add("DS", getDS());
+        h.add("x-rpc-device_id", user.getDeviceId());
+        h.add(HttpHeaders.COOKIE, user.getCookie());
+        return h;
     }
 
-    public HttpHeaders getBh3Headers(User user) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.addAll(bh3Headers);
-        headers.add("x-rpc-device_id", user.getDeviceId());
-        headers.add(HttpHeaders.COOKIE, user.getCookie());
-        return headers;
-    }
 
     public List<Role> getRoles(User user, String gameBiz, String gameUid) throws MiHoYoApiException {
         JSONObject rolesByCookie = miHoYoRepository.getRolesByCookie(user.getCookie(), gameBiz);
@@ -87,30 +76,35 @@ public class MiHoYoService {
     @Async
     @Scheduled(cron = "${app-config.sign-reward-cron}")
     @EventListener(ApplicationReadyEvent.class)
-    public synchronized void updateYsRewards() {
+    public synchronized void updateRewards() {
+        updateRewards("hk4e_cn", miHoYoRepository.getYsSignRewards());
+        updateRewards("bh3_cn", miHoYoRepository.getBh3SignRewards());
+    }
+
+    public void updateRewards(String gameBiz, JSONObject signRewards) {
         Calendar calendar = Calendar.getInstance();
         int day = calendar.get(Calendar.DAY_OF_MONTH);
         int month = calendar.get(Calendar.MONTH) + 1;
-        Reward reward = rewardService.getReward("hk4e_cn", day);
+        Reward reward = rewardService.getReward(gameBiz, day);
         if (reward == null || month != reward.getMonth()) {
-            JSONObject ysSignRewards = miHoYoRepository.getYsSignRewards();
-            List<Reward> rewards = ysSignRewards.getJSONObject("data").getJSONArray("awards").toJavaList(Reward.class);
-            rewardService.deleteRewards("hk4e_cn");
-            month = ysSignRewards.getJSONObject("data").getIntValue("month");
+            List<Reward> rewards = signRewards.getJSONObject("data").getJSONArray("awards").toJavaList(Reward.class);
+            rewardService.deleteRewards(gameBiz);
+            month = signRewards.getJSONObject("data").getIntValue("month");
             for (int i = 0; i < rewards.size(); i++) {
                 reward = rewards.get(i);
                 reward.setDay(i + 1);
-                reward.setGameBiz("hk4e_cn");
+                reward.setGameBiz(gameBiz);
                 reward.setMonth(month);
             }
             rewardService.updateReward(rewards);
         }
     }
 
+
     public Reward ysSign(Role role, User user) throws MiHoYoApiException {
         String apiDelay = user.getApiDelay();
         Utils.delay(apiDelay);
-        HttpHeaders headers = getYsHeaders(user);
+        HttpHeaders headers = getHeaders(user);
         JSONObject sign = miHoYoRepository.ysSign(role, headers);
         if (sign.getIntValue("retcode") == 0) {
             Utils.delay(apiDelay);
@@ -124,12 +118,16 @@ public class MiHoYoService {
     }
 
     public Reward bh3Sign(Role role, User user) throws MiHoYoApiException {
-        Utils.delay(user.getApiDelay());
-        JSONObject sign = miHoYoRepository.bh3Sign(role, getBh3Headers(user));
+        String apiDelay = user.getApiDelay();
+        Utils.delay(apiDelay);
+        HttpHeaders headers = getHeaders(user);
+        JSONObject sign = miHoYoRepository.bh3Sign(role, headers);
         if (sign.getIntValue("retcode") == 0) {
-            JSONObject data = sign.getJSONObject("data");
-            int cnt = data.getIntValue("sign_cnt");
-            return data.getJSONArray("list").getObject(cnt-1, Reward.class);
+            Utils.delay(apiDelay);
+            JSONObject signInInfo = miHoYoRepository.getBh3SignInfo(role, headers);
+            JSONObject data = signInInfo.getJSONObject("data");
+            int day = data.getIntValue("total_sign_day");
+            return rewardService.getReward("bh3_cn", day);
         } else {
             throw new MiHoYoApiException(sign.getString("message"));
         }
