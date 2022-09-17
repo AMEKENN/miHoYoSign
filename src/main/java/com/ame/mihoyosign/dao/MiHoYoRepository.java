@@ -2,15 +2,11 @@ package com.ame.mihoyosign.dao;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ame.mihoyosign.entity.Role;
-import com.ame.mihoyosign.entity.User;
-import com.ame.mihoyosign.util.Utils;
-import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.http.*;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.Resource;
-import java.util.Random;
 
 @Repository
 public class MiHoYoRepository {

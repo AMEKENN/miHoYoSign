@@ -1,6 +1,8 @@
 package com.ame.mihoyosign.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.util.List;
@@ -15,6 +17,8 @@ public class User {
     private Long id;
     @Column(length = 2048)
     private String cookie;
+    @Column(length = 2048)
+    private String ua;
     private String deviceId;
     @Column(columnDefinition = "varchar(255) default '[2,10]'")
     private String apiDelay;

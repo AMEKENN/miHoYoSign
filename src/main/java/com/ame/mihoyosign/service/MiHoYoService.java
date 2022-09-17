@@ -2,9 +2,9 @@ package com.ame.mihoyosign.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.ame.mihoyosign.dao.MiHoYoRepository;
+import com.ame.mihoyosign.entity.Reward;
 import com.ame.mihoyosign.entity.Role;
 import com.ame.mihoyosign.entity.User;
-import com.ame.mihoyosign.entity.Reward;
 import com.ame.mihoyosign.exception.MiHoYoApiException;
 import com.ame.mihoyosign.util.Utils;
 import lombok.extern.log4j.Log4j2;
@@ -19,7 +19,8 @@ import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Calendar;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Log4j2
@@ -30,7 +31,10 @@ public class MiHoYoService {
     private HttpHeaders headers;
     @Value("${app-config.salt}")
     private String salt;
-
+    @Value("${app-config.version}")
+    private String version;
+    @Value("${app-config.ua}")
+    private String UA;
     @Resource
     private MiHoYoRepository miHoYoRepository;
     @Resource
@@ -52,7 +56,14 @@ public class MiHoYoService {
         h.addAll(headers);
         h.add("DS", getDS());
         h.add("x-rpc-device_id", user.getDeviceId());
+        h.add("x-rpc-app_version", version);
         h.add(HttpHeaders.COOKIE, user.getCookie());
+        if (user.getUa() == null) {
+            h.add(HttpHeaders.USER_AGENT, UA.replace("{version}", version));
+        } else {
+            h.add(HttpHeaders.USER_AGENT, user.getUa().
+                    replaceAll("miHoYoBBS/\\d+(.\\d+)*", "miHoYoBBS/" + version));
+        }
         return h;
     }
 
@@ -101,33 +112,55 @@ public class MiHoYoService {
     }
 
 
-    public Reward ysSign(Role role, User user) throws MiHoYoApiException {
+    public Reward ysSign(Role role, User user, boolean isCommand) throws MiHoYoApiException {
         String apiDelay = user.getApiDelay();
         Utils.delay(apiDelay);
         HttpHeaders headers = getHeaders(user);
+        JSONObject signInInfo = miHoYoRepository.getYsSignInfo(role, headers);
+        if (signInInfo.getJSONObject("data").getBooleanValue("is_sign") && isCommand) {
+            int day = signInInfo.getJSONObject("data").getIntValue("total_sign_day");
+            return rewardService.getReward("hk4e_cn", day);
+        } else if (signInInfo.getJSONObject("data").getBooleanValue("is_sign")) {
+            return null;
+        }
+        Utils.delay(apiDelay);
         JSONObject sign = miHoYoRepository.ysSign(role, headers);
         if (sign.getIntValue("retcode") == 0) {
             Utils.delay(apiDelay);
-            JSONObject signInInfo = miHoYoRepository.getYsSignInfo(role, headers);
-            JSONObject data = signInInfo.getJSONObject("data");
-            int day = data.getIntValue("total_sign_day");
-            return rewardService.getReward("hk4e_cn", day);
+            signInInfo = miHoYoRepository.getYsSignInfo(role, headers);
+            if (signInInfo.getJSONObject("data").getBooleanValue("is_sign")) {
+                int day = signInInfo.getJSONObject("data").getIntValue("total_sign_day");
+                return rewardService.getReward("hk4e_cn", day);
+            } else {
+                throw new MiHoYoApiException("需要验证码,建议修改为常用设备的User-Agent");
+            }
         } else {
             throw new MiHoYoApiException(sign.getString("message"));
         }
     }
 
-    public Reward bh3Sign(Role role, User user) throws MiHoYoApiException {
+    public Reward bh3Sign(Role role, User user, boolean isCommand) throws MiHoYoApiException {
         String apiDelay = user.getApiDelay();
         Utils.delay(apiDelay);
         HttpHeaders headers = getHeaders(user);
+        JSONObject signInInfo = miHoYoRepository.getBh3SignInfo(role, headers);
+        if (signInInfo.getJSONObject("data").getBooleanValue("is_sign") && isCommand) {
+            int day = signInInfo.getJSONObject("data").getIntValue("total_sign_day");
+            return rewardService.getReward("bh3_cn", day);
+        } else if (signInInfo.getJSONObject("data").getBooleanValue("is_sign")) {
+            return null;
+        }
+        Utils.delay(apiDelay);
         JSONObject sign = miHoYoRepository.bh3Sign(role, headers);
         if (sign.getIntValue("retcode") == 0) {
             Utils.delay(apiDelay);
-            JSONObject signInInfo = miHoYoRepository.getBh3SignInfo(role, headers);
-            JSONObject data = signInInfo.getJSONObject("data");
-            int day = data.getIntValue("total_sign_day");
-            return rewardService.getReward("bh3_cn", day);
+            signInInfo = miHoYoRepository.getBh3SignInfo(role, headers);
+            if (signInInfo.getJSONObject("data").getBooleanValue("is_sign")) {
+                int day = signInInfo.getJSONObject("data").getIntValue("total_sign_day");
+                return rewardService.getReward("bh3_cn", day);
+            } else {
+                throw new MiHoYoApiException("需要验证码,建议修改为常用设备的User-Agent");
+            }
         } else {
             throw new MiHoYoApiException(sign.getString("message"));
         }

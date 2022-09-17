@@ -94,11 +94,14 @@ public class MiraiService {
                 case "解绑":
                     re = userService.unbind(qqId);
                     break;
+                case "修改UA":
+                    re = userService.setUA(qqId, msg.substring(5));
+                    break;
                 case "修改api延迟":
-                    re = userService.setApiDelay(qqId,str);
+                    re = userService.setApiDelay(qqId, str);
                     break;
                 case "修改签到延迟":
-                    re = userService.setSignDelay(qqId,str);
+                    re = userService.setSignDelay(qqId, str);
                     break;
                 case "开启签到":
                     re = roleService.turnOnSign(qqId, str, num);

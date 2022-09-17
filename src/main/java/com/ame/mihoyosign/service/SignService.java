@@ -58,13 +58,13 @@ public class SignService {
                 Reward reward = null;
                 switch (gameBiz) {
                     case "hk4e_cn":
-                        reward = miHoYoService.ysSign(role, user);
+                        reward = miHoYoService.ysSign(role, user, isCommand);
                         break;
                     case "bh3_cn":
-                        reward = miHoYoService.bh3Sign(role, user);
+                        reward = miHoYoService.bh3Sign(role, user, isCommand);
                         break;
                 }
-                if (isCommand || role.isNotice()) {
+                if (reward != null && (isCommand || role.isNotice())) {
                     s.append("「签到 成功」\n").append(Reward.getInfo(reward)).append(role.getInfo()).append("\n\n");
                 }
                 log.info("[签到结果:成功]  QQ:{}  游戏:{}  UID:{}",
